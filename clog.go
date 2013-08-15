@@ -73,6 +73,11 @@ func EnableKey(key string) {
 	keys[key] = true
 }
 
+// Disable logging messages sent to this key
+func DisableKey(key string) {
+	delete(keys, key)
+}
+
 // Check to see if logging is enabled for a key
 func KeyEnabled(key string) bool {
 	enabled, ok := keys[key]
