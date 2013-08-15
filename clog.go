@@ -19,29 +19,29 @@ import (
 
 // 1 enables regular logs, 2 enables warnings, 3+ is nothing but panics.
 // Default value is 1.
-var LogLevel int = 1
+var Level int = 1
 
-// Set of LogTo() key strings that are enabled.
-var LogKeys map[string]bool
+// Set of To() key strings that are enabled.
+var Keys map[string]bool
 
 var logger *log.Logger
 
 func init() {
 	logger = log.New(os.Stderr, "", log.Lmicroseconds)
-	LogKeys = make(map[string]bool)
+	Keys = make(map[string]bool)
 }
 
 // Disables ANSI color in log output.
-func LogNoColor() {
+func NoColor() {
 	reset, dim, fgRed, fgYellow = "", "", "", ""
 }
 
-func LogNoTime() {
+func NoTime() {
 	logger.SetFlags(logger.Flags() &^ (log.Ldate | log.Ltime | log.Lmicroseconds))
 }
 
 // Parses a comma-separated list of log keys, probably coming from an argv flag.
-// The key "bw" is interpreted as a call to LogNoColor, not a key.
+// The key "bw" is interpreted as a call to NoColor, not a key.
 func ParseLogFlag(flag string) {
 	if flag != "" {
 		ParseLogFlags(strings.Split(flag, ","))
@@ -49,19 +49,19 @@ func ParseLogFlag(flag string) {
 }
 
 // Parses an array of log keys, probably coming from a argv flags.
-// The key "bw" is interpreted as a call to LogNoColor, not a key.
+// The key "bw" is interpreted as a call to NoColor, not a key.
 func ParseLogFlags(flags []string) {
 	for _, key := range flags {
 		switch key {
 		case "bw":
-			LogNoColor()
+			NoColor()
 		case "notime":
-			LogNoTime()
+			NoTime()
 		default:
-			LogKeys[key] = true
+			Keys[key] = true
 			for strings.HasSuffix(key, "+") {
 				key = key[0 : len(key)-1]
-				LogKeys[key] = true // "foo+" also enables "foo"
+				Keys[key] = true // "foo+" also enables "foo"
 			}
 		}
 	}
@@ -84,51 +84,51 @@ func GetCallersName(depth int) string {
 	return fmt.Sprintf("%s() at %s:%d", lastComponent(fnname), lastComponent(file), line)
 }
 
-// Logs a message to the console, but only if the corresponding key is true in LogKeys.
-func LogTo(key string, format string, args ...interface{}) {
-	if LogLevel <= 1 && LogKeys[key] {
+// s a message to the console, but only if the corresponding key is true in Keys.
+func To(key string, format string, args ...interface{}) {
+	if Level <= 1 && Keys[key] {
 		logger.Printf(fgYellow+key+": "+reset+format, args...)
 	}
 }
 
-// Logs a message to the console.
+// s a message to the console.
 func Log(format string, args ...interface{}) {
-	if LogLevel <= 1 {
+	if Level <= 1 {
 		logger.Printf(format, args...)
 	}
 }
 
 // If the error is not nil, logs its description and the name of the calling function.
 // Returns the input error for easy chaining.
-func LogError(err error) error {
-	if LogLevel <= 2 && err != nil {
+func Error(err error) error {
+	if Level <= 2 && err != nil {
 		logWithCaller(fgRed, "ERROR", "%v", err)
 	}
 	return err
 }
 
-// Logs a warning to the console
+// s a warning to the console
 func Warn(format string, args ...interface{}) {
-	if LogLevel <= 2 {
+	if Level <= 2 {
 		logWithCaller(fgRed, "WARNING", format, args...)
 	}
 }
 
-// Logs a highlighted message prefixed with "TEMP". This function is intended for
+// s a highlighted message prefixed with "TEMP". This function is intended for
 // temporary logging calls added during development and not to be checked in, hence its
 // distinctive name (which is visible and easy to search for before committing.)
 func TEMP(format string, args ...interface{}) {
 	logWithCaller(fgYellow, "TEMP", format, args...)
 }
 
-// Logs a warning to the console, then panics.
-func LogPanic(format string, args ...interface{}) {
+// s a warning to the console, then panics.
+func Panic(format string, args ...interface{}) {
 	logWithCaller(fgRed, "PANIC", format, args...)
 	panic(fmt.Sprintf(format, args...))
 }
 
-// Logs a warning to the console, then exits the process.
-func LogFatal(format string, args ...interface{}) {
+// s a warning to the console, then exits the process.
+func Fatal(format string, args ...interface{}) {
 	logWithCaller(fgRed, "FATAL", format, args...)
 	os.Exit(1)
 }
