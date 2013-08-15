@@ -68,10 +68,12 @@ func ParseLogFlags(flags []string) {
 	Log("Enabling logging: %s", flags)
 }
 
+// Enable logging messages sent to this key
 func EnableKey(key string) {
 	keys[key] = true
 }
 
+// Check to see if logging is enabled for a key
 func KeyEnabled(key string) bool {
 	enabled, ok := keys[key]
 	return ok && enabled
@@ -93,14 +95,14 @@ func GetCallersName(depth int) string {
 	return fmt.Sprintf("%s() at %s:%d", lastComponent(fnname), lastComponent(file), line)
 }
 
-// s a message to the console, but only if the corresponding key is true in Keys.
+// Logs a message to the console, but only if the corresponding key is true in keys.
 func To(key string, format string, args ...interface{}) {
 	if Level <= 1 && keys[key] {
 		logger.Printf(fgYellow+key+": "+reset+format, args...)
 	}
 }
 
-// s a message to the console.
+// Logs a message to the console.
 func Log(format string, args ...interface{}) {
 	if Level <= 1 {
 		logger.Printf(format, args...)
@@ -116,27 +118,27 @@ func Error(err error) error {
 	return err
 }
 
-// s a warning to the console
+// Logs a warning to the console
 func Warn(format string, args ...interface{}) {
 	if Level <= 2 {
 		logWithCaller(fgRed, "WARNING", format, args...)
 	}
 }
 
-// s a highlighted message prefixed with "TEMP". This function is intended for
+// Logs a highlighted message prefixed with "TEMP". This function is intended for
 // temporary logging calls added during development and not to be checked in, hence its
 // distinctive name (which is visible and easy to search for before committing.)
 func TEMP(format string, args ...interface{}) {
 	logWithCaller(fgYellow, "TEMP", format, args...)
 }
 
-// s a warning to the console, then panics.
+// Logs a warning to the console, then panics.
 func Panic(format string, args ...interface{}) {
 	logWithCaller(fgRed, "PANIC", format, args...)
 	panic(fmt.Sprintf(format, args...))
 }
 
-// s a warning to the console, then exits the process.
+// Logs a warning to the console, then exits the process.
 func Fatal(format string, args ...interface{}) {
 	logWithCaller(fgRed, "FATAL", format, args...)
 	os.Exit(1)
