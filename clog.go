@@ -22,13 +22,13 @@ import (
 var Level int = 1
 
 // Set of To() key strings that are enabled.
-var Keys map[string]bool
+var keys map[string]bool
 
 var logger *log.Logger
 
 func init() {
 	logger = log.New(os.Stderr, "", log.Lmicroseconds)
-	Keys = make(map[string]bool)
+	keys = make(map[string]bool)
 }
 
 // Disables ANSI color in log output.
@@ -58,14 +58,23 @@ func ParseLogFlags(flags []string) {
 		case "notime":
 			NoTime()
 		default:
-			Keys[key] = true
+			EnableKey(key)
 			for strings.HasSuffix(key, "+") {
 				key = key[0 : len(key)-1]
-				Keys[key] = true // "foo+" also enables "foo"
+				EnableKey(key) // "foo+" also enables "foo"
 			}
 		}
 	}
 	Log("Enabling logging: %s", flags)
+}
+
+func EnableKey(key string) {
+	keys[key] = true
+}
+
+func KeyEnabled(key string) bool {
+	enabled, ok := keys[key]
+	return ok && enabled
 }
 
 // Returns a string identifying a function on the call stack.
@@ -86,7 +95,7 @@ func GetCallersName(depth int) string {
 
 // s a message to the console, but only if the corresponding key is true in Keys.
 func To(key string, format string, args ...interface{}) {
-	if Level <= 1 && Keys[key] {
+	if Level <= 1 && keys[key] {
 		logger.Printf(fgYellow+key+": "+reset+format, args...)
 	}
 }
