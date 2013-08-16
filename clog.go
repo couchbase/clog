@@ -22,14 +22,9 @@ import (
 var Level int = 1
 
 // Set of To() key strings that are enabled.
-var keys map[string]bool
+var keys = map[string]bool{}
 
-var logger *log.Logger
-
-func init() {
-	logger = log.New(os.Stderr, "", log.Lmicroseconds)
-	keys = make(map[string]bool)
-}
+var logger *log.Logger = log.New(os.Stderr, "", log.Lmicroseconds)
 
 // Disables ANSI color in log output.
 func NoColor() {
