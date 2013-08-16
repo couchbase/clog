@@ -36,3 +36,19 @@ func TestGetCallersName(t *testing.T) {
 		t.Errorf("Expected unknown call, got %q", cn.String())
 	}
 }
+
+func TestKeyFlag(t *testing.T) {
+	EnableKey("x")
+	EnableKey("y")
+	DisableKey("y")
+
+	if !KeyEnabled("x") {
+		t.Errorf("x should be enabled, but isn't")
+	}
+	if KeyEnabled("y") {
+		t.Errorf("y should not be enabled, but is")
+	}
+	if KeyEnabled("z") {
+		t.Errorf("z should not be enabled, but is")
+	}
+}

@@ -75,8 +75,7 @@ func DisableKey(key string) {
 
 // Check to see if logging is enabled for a key
 func KeyEnabled(key string) bool {
-	enabled, ok := keys[key]
-	return ok && enabled
+	return keys[key]
 }
 
 type callInfo struct {
