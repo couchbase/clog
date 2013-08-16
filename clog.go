@@ -146,42 +146,88 @@ func Log(format string, args ...interface{}) {
 	}
 }
 
+// Prints a formatted message to the console.
+func Printf(format string, args ...interface{}) {
+	if Level <= 1 {
+		logger.Printf(format, args...)
+	}
+}
+
+// Prints a message to the console.
+func Print(args ...interface{}) {
+	if Level <= 1 {
+		logger.Print(args...)
+	}
+}
+
 // If the error is not nil, logs its description and the name of the calling function.
 // Returns the input error for easy chaining.
 func Error(err error) error {
 	if Level <= 2 && err != nil {
-		logWithCaller(fgRed, "ERROR", "%v", err)
+		logWithCallerf(fgRed, "ERROR", "%v", err)
 	}
 	return err
 }
 
-// Logs a warning to the console
-func Warn(format string, args ...interface{}) {
+// Logs a formatted warning to the console
+func Warnf(format string, args ...interface{}) {
 	if Level <= 2 {
-		logWithCaller(fgRed, "WARNING", format, args...)
+		logWithCallerf(fgRed, "WARNING", format, args...)
+	}
+}
+
+// Logs a warning to the console
+func Warn(args ...interface{}) {
+	if Level <= 2 {
+		logWithCaller(fgRed, "WARNING", args...)
 	}
 }
 
 // Logs a highlighted message prefixed with "TEMP". This function is intended for
 // temporary logging calls added during development and not to be checked in, hence its
 // distinctive name (which is visible and easy to search for before committing.)
-func TEMP(format string, args ...interface{}) {
-	logWithCaller(fgYellow, "TEMP", format, args...)
+func TEMPf(format string, args ...interface{}) {
+	logWithCallerf(fgYellow, "TEMP", format, args...)
 }
 
-// Logs a warning to the console, then panics.
-func Panic(format string, args ...interface{}) {
-	logWithCaller(fgRed, "PANIC", format, args...)
+// Logs a highlighted message prefixed with "TEMP". This function is intended for
+// temporary logging calls added during development and not to be checked in, hence its
+// distinctive name (which is visible and easy to search for before committing.)
+func TEMP(args ...interface{}) {
+	logWithCaller(fgYellow, "TEMP", args...)
+}
+
+// Logs a formatted warning to the console, then panics.
+func Panicf(format string, args ...interface{}) {
+	logWithCallerf(fgRed, "PANIC", format, args...)
 	panic(fmt.Sprintf(format, args...))
 }
 
-// Logs a warning to the console, then exits the process.
-func Fatal(format string, args ...interface{}) {
-	logWithCaller(fgRed, "FATAL", format, args...)
+// Logs a warning to the console, then panics.
+func Panic(args ...interface{}) {
+	logWithCaller(fgRed, "PANIC", args...)
+	panic(fmt.Sprint(args...))
+}
+
+// Logs a formatted warning to the console, then exits the process.
+func Fatalf(format string, args ...interface{}) {
+	logWithCallerf(fgRed, "FATAL", format, args...)
 	os.Exit(1)
 }
 
-func logWithCaller(color string, prefix string, format string, args ...interface{}) {
+// Logs a warning to the console, then exits the process.
+func Fatal(args ...interface{}) {
+	logWithCaller(fgRed, "FATAL", args...)
+	os.Exit(1)
+}
+
+func logWithCaller(color string, prefix string, args ...interface{}) {
+	message := fmt.Sprint(args...)
+	logger.Print(color, prefix, ": ", message, reset,
+		dim, " -- ", getCallersName(2), reset)
+}
+
+func logWithCallerf(color string, prefix string, format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	logger.Print(color, prefix, ": ", message, reset,
 		dim, " -- ", getCallersName(2), reset)

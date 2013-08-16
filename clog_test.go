@@ -1,6 +1,11 @@
 package clog
 
 import (
+	"bytes"
+	"fmt"
+	"log"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -50,6 +55,108 @@ func TestKeyFlag(t *testing.T) {
 	}
 	if KeyEnabled("z") {
 		t.Errorf("z should not be enabled, but is")
+	}
+}
+
+func TestOutput(t *testing.T) {
+	// reset the log when we're done
+	defer func() {
+		logger = log.New(os.Stderr, "", log.Lmicroseconds)
+	}()
+
+	type niladic func()
+	tests := []struct {
+		f      niladic
+		output string
+	}{
+		{
+			func() {
+				Log("testing %s", "123")
+			},
+			"testing 123",
+		},
+		{
+			func() {
+				EnableKey("private")
+				To("private", "testing %s", "123")
+			},
+			fgYellow + "private: " + reset + "testing 123",
+		},
+		{
+			func() {
+				EnableKey("private")
+				DisableKey("private")
+				To("private", "testing %s", "123")
+			},
+			"",
+		},
+		{
+			func() {
+				Printf("testing %s", "123")
+			},
+			"testing 123",
+		},
+		{
+			func() {
+				Print("testing", "123")
+			},
+			"testing123",
+		},
+		{
+			func() {
+				Error(fmt.Errorf("test error"))
+			},
+			fgRed + "ERROR: " + "test error" + reset,
+		},
+		{
+			func() {
+				Warnf("testing %s", "123")
+			},
+			fgRed + "WARNING: " + "testing 123" + reset,
+		},
+		{
+			func() {
+				Warn("testing", "123")
+			},
+			fgRed + "WARNING: " + "testing123" + reset,
+		},
+		{
+			func() {
+				TEMPf("testing %s", "123")
+			},
+			fgYellow + "TEMP: " + "testing 123" + reset,
+		},
+		{
+			func() {
+				TEMP("testing", "123")
+			},
+			fgYellow + "TEMP: " + "testing123" + reset,
+		},
+	}
+
+	for _, test := range tests {
+		// reset our log buffer
+		var buffer bytes.Buffer
+		logger = log.New(&buffer, "", log.Lmicroseconds)
+		// disable time so we can more easily compare
+		NoTime()
+		test.f()
+		if buffer.Len() > 0 {
+			usedBytes := buffer.Bytes()[0 : buffer.Len()-1]
+			output := string(usedBytes)
+			// strip off the caller info as we can't easily compare that
+			callerLocation := strings.LastIndex(output, dim+" -- ")
+			if callerLocation >= 0 {
+				output = output[0:callerLocation]
+			}
+			if output != test.output {
+				t.Errorf("Expected '%s' got '%s'", test.output, output)
+			}
+		} else {
+			if test.output != "" {
+				t.Errorf("Expected output `%s`, got none", test.output)
+			}
+		}
 	}
 }
 
