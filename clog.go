@@ -15,6 +15,8 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync/atomic"
+	"unsafe"
 )
 
 // 1 enables regular logs, 2 enables warnings, 3+ is nothing but panics.
@@ -22,7 +24,7 @@ import (
 var Level int = 1
 
 // Set of To() key strings that are enabled.
-var keys = map[string]bool{}
+var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 
 var logger *log.Logger = log.New(os.Stderr, "", log.Lmicroseconds)
 
@@ -65,17 +67,40 @@ func ParseLogFlags(flags []string) {
 
 // Enable logging messages sent to this key
 func EnableKey(key string) {
-	keys[key] = true
+	for {
+		opp := atomic.LoadPointer(&keys)
+		oldk := (*map[string]bool)(opp)
+		newk := map[string]bool{key: true}
+		for k := range *oldk {
+			newk[k] = true
+		}
+		if atomic.CompareAndSwapPointer(&keys, opp, unsafe.Pointer(&newk)) {
+			return
+		}
+	}
 }
 
 // Disable logging messages sent to this key
 func DisableKey(key string) {
-	delete(keys, key)
+	for {
+		opp := atomic.LoadPointer(&keys)
+		oldk := (*map[string]bool)(opp)
+		newk := map[string]bool{}
+		for k := range *oldk {
+			if k != key {
+				newk[k] = true
+			}
+		}
+		if atomic.CompareAndSwapPointer(&keys, opp, unsafe.Pointer(&newk)) {
+			return
+		}
+	}
 }
 
 // Check to see if logging is enabled for a key
 func KeyEnabled(key string) bool {
-	return keys[key]
+	m := *(*map[string]bool)(atomic.LoadPointer(&keys))
+	return m[key]
 }
 
 type callInfo struct {
@@ -109,7 +134,7 @@ func getCallersName(depth int) callInfo {
 
 // Logs a message to the console, but only if the corresponding key is true in keys.
 func To(key string, format string, args ...interface{}) {
-	if Level <= 1 && keys[key] {
+	if Level <= 1 && KeyEnabled(key) {
 		logger.Printf(fgYellow+key+": "+reset+format, args...)
 	}
 }
