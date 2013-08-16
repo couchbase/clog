@@ -79,12 +79,25 @@ func KeyEnabled(key string) bool {
 	return ok && enabled
 }
 
+type callInfo struct {
+	funcname, filename string
+	line               int
+}
+
+func (c callInfo) String() string {
+	if c.funcname == "" {
+		return "???"
+	}
+	return fmt.Sprintf("%s() at %s:%d", lastComponent(c.funcname),
+		lastComponent(c.filename), c.line)
+}
+
 // Returns a string identifying a function on the call stack.
 // Use depth=1 for the caller of the function that calls GetCallersName, etc.
-func GetCallersName(depth int) string {
+func getCallersName(depth int) callInfo {
 	pc, file, line, ok := runtime.Caller(depth + 1)
 	if !ok {
-		return "???"
+		return callInfo{}
 	}
 
 	fnname := ""
@@ -92,7 +105,7 @@ func GetCallersName(depth int) string {
 		fnname = fn.Name()
 	}
 
-	return fmt.Sprintf("%s() at %s:%d", lastComponent(fnname), lastComponent(file), line)
+	return callInfo{fnname, file, line}
 }
 
 // Logs a message to the console, but only if the corresponding key is true in keys.
@@ -147,7 +160,7 @@ func Fatal(format string, args ...interface{}) {
 func logWithCaller(color string, prefix string, format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	logger.Print(color, prefix, ": ", message, reset,
-		dim, " -- ", GetCallersName(2), reset)
+		dim, " -- ", getCallersName(2), reset)
 }
 
 func lastComponent(path string) string {
