@@ -52,3 +52,25 @@ func TestKeyFlag(t *testing.T) {
 		t.Errorf("z should not be enabled, but is")
 	}
 }
+
+func BenchmarkFlagLookupMiss(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		KeyEnabled("x")
+	}
+}
+
+func BenchmarkFlagLookupHit(b *testing.B) {
+	EnableKey("x")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		KeyEnabled("x")
+	}
+}
+
+func BenchmarkFlagSet(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		EnableKey("x")
+	}
+}
