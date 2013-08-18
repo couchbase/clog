@@ -19,9 +19,17 @@ import (
 	"unsafe"
 )
 
-// 1 enables regular logs, 2 enables warnings, 3+ is nothing but panics.
-// Default value is 1.
-var Level int = 1
+// Log level type
+type logLevel int
+
+const (
+	LevelNormal = logLevel(iota)
+	LevelWarning
+	LevelPanic
+)
+
+// Logging package level
+var Level = LevelNormal
 
 // Set of To() key strings that are enabled.
 var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
@@ -134,28 +142,28 @@ func getCallersName(depth int) callInfo {
 
 // Logs a message to the console, but only if the corresponding key is true in keys.
 func To(key string, format string, args ...interface{}) {
-	if Level <= 1 && KeyEnabled(key) {
+	if Level <= LevelNormal && KeyEnabled(key) {
 		logger.Printf(fgYellow+key+": "+reset+format, args...)
 	}
 }
 
 // Logs a message to the console.
 func Log(format string, args ...interface{}) {
-	if Level <= 1 {
+	if Level <= LevelNormal {
 		logger.Printf(format, args...)
 	}
 }
 
 // Prints a formatted message to the console.
 func Printf(format string, args ...interface{}) {
-	if Level <= 1 {
+	if Level <= LevelNormal {
 		logger.Printf(format, args...)
 	}
 }
 
 // Prints a message to the console.
 func Print(args ...interface{}) {
-	if Level <= 1 {
+	if Level <= LevelNormal {
 		logger.Print(args...)
 	}
 }
@@ -163,7 +171,7 @@ func Print(args ...interface{}) {
 // If the error is not nil, logs its description and the name of the calling function.
 // Returns the input error for easy chaining.
 func Error(err error) error {
-	if Level <= 2 && err != nil {
+	if Level <= LevelWarning && err != nil {
 		logWithCallerf(fgRed, "ERROR", "%v", err)
 	}
 	return err
@@ -171,14 +179,14 @@ func Error(err error) error {
 
 // Logs a formatted warning to the console
 func Warnf(format string, args ...interface{}) {
-	if Level <= 2 {
+	if Level <= LevelWarning {
 		logWithCallerf(fgRed, "WARNING", format, args...)
 	}
 }
 
 // Logs a warning to the console
 func Warn(args ...interface{}) {
-	if Level <= 2 {
+	if Level <= LevelWarning {
 		logWithCaller(fgRed, "WARNING", args...)
 	}
 }
