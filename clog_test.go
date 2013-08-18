@@ -3,7 +3,6 @@ package clog
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"testing"
@@ -60,9 +59,7 @@ func TestKeyFlag(t *testing.T) {
 
 func TestOutput(t *testing.T) {
 	// reset the log when we're done
-	defer func() {
-		logger = log.New(os.Stderr, "", log.Lmicroseconds)
-	}()
+	defer SetOutput(os.Stderr)
 
 	type niladic func()
 	tests := []struct {
@@ -136,8 +133,8 @@ func TestOutput(t *testing.T) {
 
 	for _, test := range tests {
 		// reset our log buffer
-		var buffer bytes.Buffer
-		logger = log.New(&buffer, "", log.Lmicroseconds)
+		buffer := &bytes.Buffer{}
+		SetOutput(buffer)
 		// disable time so we can more easily compare
 		DisableTime()
 		test.f()

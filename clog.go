@@ -11,6 +11,7 @@ package clog
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -44,6 +45,11 @@ func DisableColor() {
 // Disable timestamps in logs.
 func DisableTime() {
 	logger.SetFlags(logger.Flags() &^ (log.Ldate | log.Ltime | log.Lmicroseconds))
+}
+
+// SetOutput sets the output destination for clog
+func SetOutput(w io.Writer) {
+	logger = log.New(w, "", logger.Flags())
 }
 
 // Parses a comma-separated list of log keys, probably coming from an argv flag.
