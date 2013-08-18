@@ -174,7 +174,6 @@ func TestOutput(t *testing.T) {
 }
 
 func BenchmarkFlagLookupMiss(b *testing.B) {
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		KeyEnabled("x")
 	}
@@ -189,7 +188,6 @@ func BenchmarkFlagLookupHit(b *testing.B) {
 }
 
 func BenchmarkFlagSet(b *testing.B) {
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		EnableKey("x")
 	}
