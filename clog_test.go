@@ -139,7 +139,7 @@ func TestOutput(t *testing.T) {
 		var buffer bytes.Buffer
 		logger = log.New(&buffer, "", log.Lmicroseconds)
 		// disable time so we can more easily compare
-		NoTime()
+		DisableTime()
 		test.f()
 		if buffer.Len() > 0 {
 			usedBytes := buffer.Bytes()[0 : buffer.Len()-1]

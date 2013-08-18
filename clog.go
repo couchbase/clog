@@ -37,11 +37,12 @@ var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 var logger *log.Logger = log.New(os.Stderr, "", log.Lmicroseconds)
 
 // Disables ANSI color in log output.
-func NoColor() {
+func DisableColor() {
 	reset, dim, fgRed, fgYellow = "", "", "", ""
 }
 
-func NoTime() {
+// Disable timestamps in logs.
+func DisableTime() {
 	logger.SetFlags(logger.Flags() &^ (log.Ldate | log.Ltime | log.Lmicroseconds))
 }
 
@@ -59,9 +60,9 @@ func ParseLogFlags(flags []string) {
 	for _, key := range flags {
 		switch key {
 		case "bw":
-			NoColor()
+			DisableColor()
 		case "notime":
-			NoTime()
+			DisableTime()
 		default:
 			EnableKey(key)
 			for strings.HasSuffix(key, "+") {
