@@ -192,3 +192,36 @@ func BenchmarkFlagSet(b *testing.B) {
 		EnableKey("x")
 	}
 }
+
+func BenchmarkToDisabled(b *testing.B) {
+	defer SetOutput(os.Stderr)
+	SetOutput(ioutil.Discard)
+	DisableKey("btoe")
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		To("btod", "thing")
+	}
+}
+
+func BenchmarkToEnabled(b *testing.B) {
+	defer SetOutput(os.Stderr)
+	SetOutput(ioutil.Discard)
+	EnableKey("btoe")
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		To("btoe", "thing")
+	}
+}
+
+func BenchmarkToWithFmt(b *testing.B) {
+	defer SetOutput(os.Stderr)
+	SetOutput(ioutil.Discard)
+	EnableKey("btoe")
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		To("btoe", "%s", "a string")
+	}
+}
