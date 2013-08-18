@@ -3,6 +3,7 @@ package clog
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -21,6 +22,21 @@ func TestLastComponent(t *testing.T) {
 		got := lastComponent(in)
 		if got != exp {
 			t.Errorf("Expected %q for %q, got %q", exp, in, got)
+		}
+	}
+}
+
+func TestParseLogFlags(t *testing.T) {
+	defer SetOutput(os.Stderr)
+	SetOutput(ioutil.Discard)
+	ParseLogFlags([]string{"parsetest1", "parsetest2+"})
+	exp := map[string]bool{"parsetest1": true, "parsetest1+": false,
+		"parsetest2": true, "parsetest2+": true,
+		"parsetest3": false}
+	for k, v := range exp {
+		if KeyEnabled(k) != v {
+			t.Errorf("Expected %v enabled=%v, was %v",
+				k, v, KeyEnabled(k))
 		}
 	}
 }

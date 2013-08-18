@@ -72,7 +72,7 @@ func ParseLogFlags(flags []string) {
 		default:
 			EnableKey(key)
 			for strings.HasSuffix(key, "+") {
-				key = key[0 : len(key)-1]
+				key = key[:len(key)-1]
 				EnableKey(key) // "foo+" also enables "foo"
 			}
 		}
