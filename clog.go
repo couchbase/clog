@@ -224,16 +224,19 @@ func Panic(args ...interface{}) {
 	panic(fmt.Sprint(args...))
 }
 
+// For test fixture
+var exit = os.Exit
+
 // Logs a formatted warning to the console, then exits the process.
 func Fatalf(format string, args ...interface{}) {
 	logWithCallerf(fgRed, "FATAL", format, args...)
-	os.Exit(1)
+	exit(1)
 }
 
 // Logs a warning to the console, then exits the process.
 func Fatal(args ...interface{}) {
 	logWithCaller(fgRed, "FATAL", args...)
-	os.Exit(1)
+	exit(1)
 }
 
 func logWithCaller(color string, prefix string, args ...interface{}) {
