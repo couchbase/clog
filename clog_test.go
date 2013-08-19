@@ -198,12 +198,12 @@ func TestOutput(t *testing.T) {
 			t.Errorf("Expected exitVal == %v, but got %v", test.exitVal, exitVal)
 		}
 		if buffer.Len() > 0 {
-			usedBytes := buffer.Bytes()[0 : buffer.Len()-1]
+			usedBytes := buffer.Bytes()[:buffer.Len()-1]
 			output := string(usedBytes)
 			// strip off the caller info as we can't easily compare that
 			callerLocation := strings.LastIndex(output, dim+" -- ")
 			if callerLocation >= 0 {
-				output = output[0:callerLocation]
+				output = output[:callerLocation]
 			}
 			if output != test.output {
 				t.Errorf("Expected '%s' got '%s'", test.output, output)
