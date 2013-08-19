@@ -29,10 +29,12 @@ func TestLastComponent(t *testing.T) {
 func TestParseLogFlags(t *testing.T) {
 	defer SetOutput(os.Stderr)
 	SetOutput(ioutil.Discard)
-	ParseLogFlags([]string{"parsetest1", "parsetest2+"})
+	ParseLogFlag("parsetest1,parsetest2+,bw,notime")
 	exp := map[string]bool{"parsetest1": true, "parsetest1+": false,
 		"parsetest2": true, "parsetest2+": true,
-		"parsetest3": false}
+		"parsetest3": false,
+		"bw":         false,
+		"notime":     false}
 	for k, v := range exp {
 		if KeyEnabled(k) != v {
 			t.Errorf("Expected %v enabled=%v, was %v",
