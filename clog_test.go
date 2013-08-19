@@ -43,6 +43,12 @@ func TestParseLogFlags(t *testing.T) {
 	}
 }
 
+func TestParseLogFlagsEmpty(t *testing.T) {
+	defer SetOutput(os.Stderr)
+	SetOutput(ioutil.Discard)
+	ParseLogFlag("")
+}
+
 func TestGetCallersName(t *testing.T) {
 	cn := getCallersName(0)
 	if lastComponent(cn.filename) != "clog_test.go" {

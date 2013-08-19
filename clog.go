@@ -55,9 +55,7 @@ func SetOutput(w io.Writer) {
 // Parses a comma-separated list of log keys, probably coming from an argv flag.
 // The key "bw" is interpreted as a call to NoColor, not a key.
 func ParseLogFlag(flag string) {
-	if flag != "" {
-		ParseLogFlags(strings.Split(flag, ","))
-	}
+	ParseLogFlags(strings.Split(flag, ","))
 }
 
 // Parses an array of log keys, probably coming from a argv flags.
