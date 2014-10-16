@@ -35,7 +35,7 @@ var Level = LevelNormal
 // Set of To() key strings that are enabled.
 var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 
-var logger *log.Logger = log.New(os.Stderr, "", log.Lmicroseconds)
+var logger *log.Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 // Disables ANSI color in log output.
 func DisableColor() {
