@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"testing"
@@ -24,6 +25,17 @@ func TestLastComponent(t *testing.T) {
 			t.Errorf("Expected %q for %q, got %q", exp, in, got)
 		}
 	}
+}
+
+func TestFlags(t *testing.T) {
+	if Flags() != log.LstdFlags {
+		t.Errorf("Expected LstdFlags by default")
+	}
+	SetFlags(0x01234)
+	if Flags() != 0x01234 {
+		t.Errorf("Expected SetFlags() to work")
+	}
+	SetFlags(log.LstdFlags) // Leave clog as it was.
 }
 
 func TestParseLogFlags(t *testing.T) {

@@ -37,6 +37,16 @@ var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 
 var logger *log.Logger = log.New(os.Stderr, "", log.LstdFlags)
 
+// Flags returns the output flags for clog.
+func Flags() int {
+	return logger.Flags()
+}
+
+// SetFlags sets the output flags for clog.
+func SetFlags(flags int) {
+	logger.SetFlags(flags)
+}
+
 // Disables ANSI color in log output.
 func DisableColor() {
 	reset, dim, fgRed, fgYellow = "", "", "", ""
