@@ -36,6 +36,7 @@ var Level = LevelNormal
 var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 
 var logger *log.Logger = log.New(os.Stderr, "", log.LstdFlags)
+var logCallBack func(level, format string, args ...interface{}) string
 
 // Flags returns the output flags for clog.
 func Flags() int {
@@ -66,6 +67,14 @@ func SetOutput(w io.Writer) {
 // The key "bw" is interpreted as a call to NoColor, not a key.
 func ParseLogFlag(flag string) {
 	ParseLogFlags(strings.Split(flag, ","))
+}
+
+// Set a prefix function for the log message. Prefix function is called for
+// each log message and it returns a prefix which is logged before each message
+func SetLoggerCallback(k func(level, format string, args ...interface{}) string) {
+	// Clear the date and time flag
+	DisableTime()
+	logCallBack = k
 }
 
 // Parses an array of log keys, probably coming from a argv flags.
@@ -158,28 +167,56 @@ func getCallersName(depth int) callInfo {
 // Logs a message to the console, but only if the corresponding key is true in keys.
 func To(key string, format string, args ...interface{}) {
 	if Level <= LevelNormal && KeyEnabled(key) {
-		logger.Printf(fgYellow+key+": "+reset+format, args...)
+		if logCallBack != nil {
+			str := logCallBack("INFO", format, args...)
+			if str != "" {
+				logger.Print(str)
+			}
+		} else {
+			logger.Printf(fgYellow+key+": "+reset+format, args...)
+		}
 	}
 }
 
 // Logs a message to the console.
 func Log(format string, args ...interface{}) {
 	if Level <= LevelNormal {
-		logger.Printf(format, args...)
+		if logCallBack != nil {
+			str := logCallBack("INFO", format, args...)
+			if str != "" {
+				logger.Print(str)
+			}
+		} else {
+			logger.Printf(format, args...)
+		}
 	}
 }
 
 // Prints a formatted message to the console.
 func Printf(format string, args ...interface{}) {
 	if Level <= LevelNormal {
-		logger.Printf(format, args...)
+		if logCallBack != nil {
+			str := logCallBack("INFO", format, args...)
+			if str != "" {
+				logger.Print(str)
+			}
+		} else {
+			logger.Printf(format, args...)
+		}
 	}
 }
 
 // Prints a message to the console.
 func Print(args ...interface{}) {
 	if Level <= LevelNormal {
-		logger.Print(args...)
+		if logCallBack != nil {
+			str := logCallBack("INFO", "", args...)
+			if str != "" {
+				logger.Print(str)
+			}
+		} else {
+			logger.Print(args...)
+		}
 	}
 }
 
@@ -249,14 +286,28 @@ func Fatal(args ...interface{}) {
 
 func logWithCaller(color string, prefix string, args ...interface{}) {
 	message := fmt.Sprint(args...)
-	logger.Print(color, prefix, ": ", message, reset,
-		dim, " -- ", getCallersName(2), reset)
+	if logCallBack != nil {
+		str := logCallBack(prefix, "", args...)
+		if str != "" {
+			logger.Print(str, " -- ", getCallersName(2))
+		}
+	} else {
+		logger.Print(color, prefix, ": ", message, reset,
+			dim, " -- ", getCallersName(2), reset)
+	}
 }
 
 func logWithCallerf(color string, prefix string, format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
-	logger.Print(color, prefix, ": ", message, reset,
-		dim, " -- ", getCallersName(2), reset)
+	if logCallBack != nil {
+		str := logCallBack(prefix, format, args...)
+		if str != "" {
+			logger.Print(str, " -- ", getCallersName(2))
+		}
+	} else {
+		logger.Print(color, prefix, ": ", message, reset,
+			dim, " -- ", getCallersName(2), reset)
+	}
 }
 
 func lastComponent(path string) string {
