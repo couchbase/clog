@@ -145,6 +145,12 @@ func TestOutput(t *testing.T) {
 		},
 		{
 			func() {
+				Errorf("TestOutput, err: %v", fmt.Errorf("test error"))
+			},
+			fgRed + "ERROR: " + "TestOutput, err: test error" + reset, -1, false,
+		},
+		{
+			func() {
 				Warnf("testing %s", "123")
 			},
 			fgRed + "WARNING: " + "testing 123" + reset, -1, false,

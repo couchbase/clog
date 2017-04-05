@@ -26,6 +26,7 @@ type logLevel int
 const (
 	LevelNormal = logLevel(iota)
 	LevelWarning
+	LevelError
 	LevelPanic
 )
 
@@ -220,13 +221,20 @@ func Print(args ...interface{}) {
 	}
 }
 
-// If the error is not nil, logs its description and the name of the calling function.
-// Returns the input error for easy chaining.
+// If the error is not nil, logs error to the console. Returns the input error
+// for easy chaining.
 func Error(err error) error {
-	if Level <= LevelWarning && err != nil {
+	if Level <= LevelError && err != nil {
 		logWithCallerf(fgRed, "ERROR", "%v", err)
 	}
 	return err
+}
+
+// Logs a formatted error message to the console
+func Errorf(format string, args ...interface{}) {
+	if Level <= LevelError {
+		logWithCallerf(fgRed, "ERROR", format, args...)
+	}
 }
 
 // Logs a formatted warning to the console
