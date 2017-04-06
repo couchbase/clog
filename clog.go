@@ -225,7 +225,7 @@ func Print(args ...interface{}) {
 // for easy chaining.
 func Error(err error) error {
 	if Level <= LevelError && err != nil {
-		logWithCallerf(fgRed, "ERROR", "%v", err)
+		logWithCallerf(fgRed, "ERRO", "%v", err)
 	}
 	return err
 }
@@ -233,21 +233,21 @@ func Error(err error) error {
 // Logs a formatted error message to the console
 func Errorf(format string, args ...interface{}) {
 	if Level <= LevelError {
-		logWithCallerf(fgRed, "ERROR", format, args...)
+		logWithCallerf(fgRed, "ERRO", format, args...)
 	}
 }
 
 // Logs a formatted warning to the console
 func Warnf(format string, args ...interface{}) {
 	if Level <= LevelWarning {
-		logWithCallerf(fgRed, "WARNING", format, args...)
+		logWithCallerf(fgRed, "WARN", format, args...)
 	}
 }
 
 // Logs a warning to the console
 func Warn(args ...interface{}) {
 	if Level <= LevelWarning {
-		logWithCaller(fgRed, "WARNING", args...)
+		logWithCaller(fgRed, "WARN", args...)
 	}
 }
 
@@ -267,13 +267,13 @@ func TEMP(args ...interface{}) {
 
 // Logs a formatted warning to the console, then panics.
 func Panicf(format string, args ...interface{}) {
-	logWithCallerf(fgRed, "PANIC", format, args...)
+	logWithCallerf(fgRed, "CRIT", format, args...)
 	panic(fmt.Sprintf(format, args...))
 }
 
 // Logs a warning to the console, then panics.
 func Panic(args ...interface{}) {
-	logWithCaller(fgRed, "PANIC", args...)
+	logWithCaller(fgRed, "CRIT", args...)
 	panic(fmt.Sprint(args...))
 }
 
@@ -282,13 +282,13 @@ var exit = os.Exit
 
 // Logs a formatted warning to the console, then exits the process.
 func Fatalf(format string, args ...interface{}) {
-	logWithCallerf(fgRed, "FATAL", format, args...)
+	logWithCallerf(fgRed, "FATA", format, args...)
 	exit(1)
 }
 
 // Logs a warning to the console, then exits the process.
 func Fatal(args ...interface{}) {
-	logWithCaller(fgRed, "FATAL", args...)
+	logWithCaller(fgRed, "FATA", args...)
 	exit(1)
 }
 

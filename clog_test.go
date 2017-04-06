@@ -141,25 +141,25 @@ func TestOutput(t *testing.T) {
 			func() {
 				Error(fmt.Errorf("test error"))
 			},
-			fgRed + "ERROR: " + "test error" + reset, -1, false,
+			fgRed + "ERRO: " + "test error" + reset, -1, false,
 		},
 		{
 			func() {
 				Errorf("TestOutput, err: %v", fmt.Errorf("test error"))
 			},
-			fgRed + "ERROR: " + "TestOutput, err: test error" + reset, -1, false,
+			fgRed + "ERRO: " + "TestOutput, err: test error" + reset, -1, false,
 		},
 		{
 			func() {
 				Warnf("testing %s", "123")
 			},
-			fgRed + "WARNING: " + "testing 123" + reset, -1, false,
+			fgRed + "WARN: " + "testing 123" + reset, -1, false,
 		},
 		{
 			func() {
 				Warn("testing", "123")
 			},
-			fgRed + "WARNING: " + "testing123" + reset, -1, false,
+			fgRed + "WARN: " + "testing123" + reset, -1, false,
 		},
 		{
 			func() {
@@ -177,25 +177,25 @@ func TestOutput(t *testing.T) {
 			func() {
 				Fatal("testing", "123")
 			},
-			fgYellow + "FATAL: " + "testing123" + reset, 1, false,
+			fgYellow + "FATA: " + "testing123" + reset, 1, false,
 		},
 		{
 			func() {
 				Fatalf("testing12%d", 3)
 			},
-			fgYellow + "FATAL: " + "testing123" + reset, 1, false,
+			fgYellow + "FATA: " + "testing123" + reset, 1, false,
 		},
 		{
 			func() {
 				Panic("testing", "123")
 			},
-			fgYellow + "PANIC: " + "testing123" + reset, -1, true,
+			fgYellow + "CRIT: " + "testing123" + reset, -1, true,
 		},
 		{
 			func() {
 				Panicf("testing12%d", 3)
 			},
-			fgYellow + "PANIC: " + "testing123" + reset, -1, true,
+			fgYellow + "CRIT: " + "testing123" + reset, -1, true,
 		},
 	}
 
