@@ -21,16 +21,16 @@ import (
 )
 
 // Log level type
-type logLevel int
+type LogLevel int32
 
 const (
-	LevelNormal = logLevel(iota)
+	LevelNormal = LogLevel(iota)
 	LevelWarning
 	LevelError
 	LevelPanic
 )
 
-// Logging package level
+// Logging package level (Setting Level directly isn't thread-safe).
 var Level = LevelNormal
 
 // Set of To() key strings that are enabled.
@@ -38,6 +38,21 @@ var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
 
 var logger *log.Logger = log.New(os.Stderr, "", log.LstdFlags)
 var logCallBack func(level, format string, args ...interface{}) string
+
+// Thread-safe API for setting log level.
+func SetLevel(to LogLevel) {
+	for {
+		if atomic.CompareAndSwapInt32((*int32)(&Level),
+			int32(GetLevel()), int32(to)) {
+			break
+		}
+	}
+}
+
+// Thread-safe API for fetvhing log level.
+func GetLevel() LogLevel {
+	return LogLevel(atomic.LoadInt32((*int32)(&Level)))
+}
 
 // Flags returns the output flags for clog.
 func Flags() int {
@@ -167,7 +182,7 @@ func getCallersName(depth int) callInfo {
 
 // Logs a message to the console, but only if the corresponding key is true in keys.
 func To(key string, format string, args ...interface{}) {
-	if Level <= LevelNormal && KeyEnabled(key) {
+	if GetLevel() <= LevelNormal && KeyEnabled(key) {
 		if logCallBack != nil {
 			str := logCallBack("INFO", format, args...)
 			if str != "" {
@@ -181,7 +196,7 @@ func To(key string, format string, args ...interface{}) {
 
 // Logs a message to the console.
 func Log(format string, args ...interface{}) {
-	if Level <= LevelNormal {
+	if GetLevel() <= LevelNormal {
 		if logCallBack != nil {
 			str := logCallBack("INFO", format, args...)
 			if str != "" {
@@ -195,7 +210,7 @@ func Log(format string, args ...interface{}) {
 
 // Prints a formatted message to the console.
 func Printf(format string, args ...interface{}) {
-	if Level <= LevelNormal {
+	if GetLevel() <= LevelNormal {
 		if logCallBack != nil {
 			str := logCallBack("INFO", format, args...)
 			if str != "" {
@@ -209,7 +224,7 @@ func Printf(format string, args ...interface{}) {
 
 // Prints a message to the console.
 func Print(args ...interface{}) {
-	if Level <= LevelNormal {
+	if GetLevel() <= LevelNormal {
 		if logCallBack != nil {
 			str := logCallBack("INFO", "", args...)
 			if str != "" {
@@ -224,7 +239,7 @@ func Print(args ...interface{}) {
 // If the error is not nil, logs error to the console. Returns the input error
 // for easy chaining.
 func Error(err error) error {
-	if Level <= LevelError && err != nil {
+	if GetLevel() <= LevelError && err != nil {
 		logWithCallerf(fgRed, "ERRO", "%v", err)
 	}
 	return err
@@ -232,21 +247,21 @@ func Error(err error) error {
 
 // Logs a formatted error message to the console
 func Errorf(format string, args ...interface{}) {
-	if Level <= LevelError {
+	if GetLevel() <= LevelError {
 		logWithCallerf(fgRed, "ERRO", format, args...)
 	}
 }
 
 // Logs a formatted warning to the console
 func Warnf(format string, args ...interface{}) {
-	if Level <= LevelWarning {
+	if GetLevel() <= LevelWarning {
 		logWithCallerf(fgRed, "WARN", format, args...)
 	}
 }
 
 // Logs a warning to the console
 func Warn(args ...interface{}) {
-	if Level <= LevelWarning {
+	if GetLevel() <= LevelWarning {
 		logWithCaller(fgRed, "WARN", args...)
 	}
 }
