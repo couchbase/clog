@@ -20,7 +20,7 @@ import (
 	"unsafe"
 )
 
-// Log level type
+// Log level type.
 type LogLevel int32
 
 const (
@@ -49,9 +49,60 @@ func SetLevel(to LogLevel) {
 	}
 }
 
-// Thread-safe API for fetvhing log level.
+// Thread-safe API for fetching log level.
 func GetLevel() LogLevel {
 	return LogLevel(atomic.LoadInt32((*int32)(&Level)))
+}
+
+// Level of log redaction.
+type RedactionLevel int32
+
+const (
+	RedactNone = RedactionLevel(iota)
+	RedactPartial
+	RedactFull
+)
+
+// Redaction level (Setting this option directly isn't thread-safe).
+var redactLevel = RedactNone
+
+type ContentCategory int32
+
+const (
+	UserData = ContentCategory(iota)
+	MetaData
+	SystemData
+)
+
+// Thread-safe API for setting redaction level.
+func SetRedactionLevel(to RedactionLevel) {
+	for {
+		if atomic.CompareAndSwapInt32((*int32)(&redactLevel),
+			int32(GetRedactionLevel()), int32(to)) {
+			break
+		}
+	}
+}
+
+// Thread-safe API for fetching redaction level.
+func GetRedactionLevel() RedactionLevel {
+	return RedactionLevel(atomic.LoadInt32((*int32)(&redactLevel)))
+}
+
+func Redact(category ContentCategory, data interface{}) interface{} {
+	switch GetRedactionLevel() {
+	case RedactPartial:
+		if category == UserData {
+			return ""
+		}
+
+	case RedactFull:
+		if category == UserData || category == SystemData || category == MetaData {
+			return ""
+		}
+	}
+
+	return data
 }
 
 // Flags returns the output flags for clog.

@@ -240,6 +240,27 @@ func TestOutput(t *testing.T) {
 	}
 }
 
+func TestRedactions(t *testing.T) {
+	logCB := func(format string, args ...interface{}) string {
+		return fmt.Sprintf(format, args...)
+	}
+
+	str := logCB("test1: %s,%v seq: %v", "error",
+		Redact(UserData, fmt.Sprintf(" key: %v,", "k123")), 12312)
+	expect := "test1: error, key: k123, seq: 12312"
+	if str != expect {
+		t.Errorf("Unexpected output: [%v != %v]", str, expect)
+	}
+
+	SetRedactionLevel(RedactPartial)
+	str = logCB("test1: %s,%v seq: %v", "error",
+		Redact(UserData, fmt.Sprintf(" key: %q,", "k123")), 12312)
+	expect = "test1: error, seq: 12312"
+	if str != expect {
+		t.Errorf("Unexpected output: [%v != %v]", str, expect)
+	}
+}
+
 func BenchmarkFlagLookupMiss(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		KeyEnabled("x")
