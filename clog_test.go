@@ -245,17 +245,16 @@ func TestRedactions(t *testing.T) {
 		return fmt.Sprintf(format, args...)
 	}
 
-	str := logCB("test1: %s,%v seq: %v", "error",
-		Redact(UserData, fmt.Sprintf(" key: %v,", "k123")), 12312)
+	str := logCB("test1: %s, key: %s, seq: %v", "error",
+		Tag(ContentCategory(100), "k123"), 12312)
 	expect := "test1: error, key: k123, seq: 12312"
 	if str != expect {
 		t.Errorf("Unexpected output: [%v != %v]", str, expect)
 	}
 
-	SetRedactionLevel(RedactPartial)
-	str = logCB("test1: %s,%v seq: %v", "error",
-		Redact(UserData, fmt.Sprintf(" key: %q,", "k123")), 12312)
-	expect = "test1: error, seq: 12312"
+	str = logCB("test1: %s, key: %s, seq: %v", "error",
+		Tag(UserData, "k123"), 12312)
+	expect = "test1: error, key: <ud>k123</ud>, seq: 12312"
 	if str != expect {
 		t.Errorf("Unexpected output: [%v != %v]", str, expect)
 	}

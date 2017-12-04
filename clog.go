@@ -54,52 +54,29 @@ func GetLevel() LogLevel {
 	return LogLevel(atomic.LoadInt32((*int32)(&Level)))
 }
 
-// Level of log redaction.
-type RedactionLevel int32
-
-const (
-	RedactNone = RedactionLevel(iota)
-	RedactPartial
-	RedactFull
-)
-
-// Redaction level (Setting this option directly isn't thread-safe).
-var redactLevel = RedactNone
-
+// Category that the data falls under.
 type ContentCategory int32
 
 const (
 	UserData = ContentCategory(iota)
 	MetaData
 	SystemData
+	numTypes // This is to always be the last entry.
 )
 
-// Thread-safe API for setting redaction level.
-func SetRedactionLevel(to RedactionLevel) {
-	for {
-		if atomic.CompareAndSwapInt32((*int32)(&redactLevel),
-			int32(GetRedactionLevel()), int32(to)) {
-			break
-		}
+var tags []string
+
+func init() {
+	tags = []string{
+		"ud", // Couchbase UserData
+		"md", // Couchbase MetaData
+		"sd", // Couchbase SystemData
 	}
 }
 
-// Thread-safe API for fetching redaction level.
-func GetRedactionLevel() RedactionLevel {
-	return RedactionLevel(atomic.LoadInt32((*int32)(&redactLevel)))
-}
-
-func Redact(category ContentCategory, data interface{}) interface{} {
-	switch GetRedactionLevel() {
-	case RedactPartial:
-		if category == UserData {
-			return ""
-		}
-
-	case RedactFull:
-		if category == UserData || category == SystemData || category == MetaData {
-			return ""
-		}
+func Tag(category ContentCategory, data interface{}) interface{} {
+	if category < numTypes {
+		return fmt.Sprintf("<%s>%v</%s>", tags[category], data, tags[category])
 	}
 
 	return data
