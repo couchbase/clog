@@ -24,7 +24,8 @@ import (
 type LogLevel int32
 
 const (
-	LevelNormal = LogLevel(iota)
+	LevelDebug = LogLevel(iota)
+	LevelNormal
 	LevelWarning
 	LevelError
 	LevelPanic
@@ -32,6 +33,9 @@ const (
 
 // Logging package level (Setting Level directly isn't thread-safe).
 var Level = LevelNormal
+
+// Should caller be included in log messages (stored as 0 or 1 to enable thread-safe access)
+var includeCaller = int32(1)
 
 // Set of To() key strings that are enabled.
 var keys unsafe.Pointer = unsafe.Pointer(&map[string]bool{})
@@ -52,6 +56,21 @@ func SetLevel(to LogLevel) {
 // Thread-safe API for fetching log level.
 func GetLevel() LogLevel {
 	return LogLevel(atomic.LoadInt32((*int32)(&Level)))
+}
+
+// Thread-safe API for configuring whether caller information is included in log output. (default true)
+func SetIncludeCaller(enabled bool) {
+	for {
+		if atomic.CompareAndSwapInt32((*int32)(&includeCaller),
+			btoi(IsIncludeCaller()), btoi(enabled)) {
+			break
+		}
+	}
+}
+
+// Thread-safe API for indicating whether caller information is included in log output.
+func IsIncludeCaller() bool {
+	return atomic.LoadInt32((*int32)(&includeCaller)) == 1
 }
 
 // Category that the data falls under.
@@ -268,7 +287,7 @@ func Print(args ...interface{}) {
 // for easy chaining.
 func Error(err error) error {
 	if GetLevel() <= LevelError && err != nil {
-		logWithCallerf(fgRed, "ERRO", "%v", err)
+		doLogf(fgRed, "ERRO", "%v", err)
 	}
 	return err
 }
@@ -276,21 +295,35 @@ func Error(err error) error {
 // Logs a formatted error message to the console
 func Errorf(format string, args ...interface{}) {
 	if GetLevel() <= LevelError {
-		logWithCallerf(fgRed, "ERRO", format, args...)
+		doLogf(fgRed, "ERRO", format, args...)
 	}
 }
 
 // Logs a formatted warning to the console
 func Warnf(format string, args ...interface{}) {
 	if GetLevel() <= LevelWarning {
-		logWithCallerf(fgRed, "WARN", format, args...)
+		doLogf(fgRed, "WARN", format, args...)
 	}
 }
 
 // Logs a warning to the console
 func Warn(args ...interface{}) {
 	if GetLevel() <= LevelWarning {
-		logWithCaller(fgRed, "WARN", args...)
+		doLog(fgRed, "WARN", args...)
+	}
+}
+
+// Logs a formatted debug message to the console
+func Debugf(format string, args ...interface{}) {
+	if GetLevel() <= LevelDebug {
+		doLogf(fgRed, "DEBU", format, args...)
+	}
+}
+
+// Logs a debug message to the console
+func Debug(args ...interface{}) {
+	if GetLevel() <= LevelDebug {
+		doLog(fgRed, "DEBU", args...)
 	}
 }
 
@@ -298,25 +331,25 @@ func Warn(args ...interface{}) {
 // temporary logging calls added during development and not to be checked in, hence its
 // distinctive name (which is visible and easy to search for before committing.)
 func TEMPf(format string, args ...interface{}) {
-	logWithCallerf(fgYellow, "TEMP", format, args...)
+	doLogf(fgYellow, "TEMP", format, args...)
 }
 
 // Logs a highlighted message prefixed with "TEMP". This function is intended for
 // temporary logging calls added during development and not to be checked in, hence its
 // distinctive name (which is visible and easy to search for before committing.)
 func TEMP(args ...interface{}) {
-	logWithCaller(fgYellow, "TEMP", args...)
+	doLog(fgYellow, "TEMP", args...)
 }
 
 // Logs a formatted warning to the console, then panics.
 func Panicf(format string, args ...interface{}) {
-	logWithCallerf(fgRed, "CRIT", format, args...)
+	doLogf(fgRed, "CRIT", format, args...)
 	panic(fmt.Sprintf(format, args...))
 }
 
 // Logs a warning to the console, then panics.
 func Panic(args ...interface{}) {
-	logWithCaller(fgRed, "CRIT", args...)
+	doLog(fgRed, "CRIT", args...)
 	panic(fmt.Sprint(args...))
 }
 
@@ -325,39 +358,55 @@ var exit = os.Exit
 
 // Logs a formatted warning to the console, then exits the process.
 func Fatalf(format string, args ...interface{}) {
-	logWithCallerf(fgRed, "FATA", format, args...)
+	doLogf(fgRed, "FATA", format, args...)
 	exit(1)
 }
 
 // Logs a warning to the console, then exits the process.
 func Fatal(args ...interface{}) {
-	logWithCaller(fgRed, "FATA", args...)
+	doLog(fgRed, "FATA", args...)
 	exit(1)
 }
 
-func logWithCaller(color string, prefix string, args ...interface{}) {
+func doLog(color string, prefix string, args ...interface{}) {
 	message := fmt.Sprint(args...)
 	if logCallBack != nil {
 		str := logCallBack(prefix, "", args...)
 		if str != "" {
-			logger.Print(str, " -- ", getCallersName(2))
+			if IsIncludeCaller() {
+				logger.Print(str, " -- ", getCallersName(2))
+			} else {
+				logger.Print(str)
+			}
 		}
 	} else {
-		logger.Print(color, prefix, ": ", message, reset,
-			dim, " -- ", getCallersName(2), reset)
+		if IsIncludeCaller() {
+			logger.Print(color, prefix, ": ", message, reset,
+				dim, " -- ", getCallersName(2), reset)
+		} else {
+			logger.Print(color, prefix, ": ", message, reset, dim)
+		}
 	}
 }
 
-func logWithCallerf(color string, prefix string, format string, args ...interface{}) {
+func doLogf(color string, prefix string, format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	if logCallBack != nil {
 		str := logCallBack(prefix, format, args...)
 		if str != "" {
-			logger.Print(str, " -- ", getCallersName(2))
+			if IsIncludeCaller() {
+				logger.Print(str, " -- ", getCallersName(2))
+			} else {
+				logger.Print(str)
+			}
 		}
 	} else {
-		logger.Print(color, prefix, ": ", message, reset,
-			dim, " -- ", getCallersName(2), reset)
+		if IsIncludeCaller() {
+			logger.Print(color, prefix, ": ", message, reset,
+				dim, " -- ", getCallersName(2), reset)
+		} else {
+			logger.Print(color, prefix, ": ", message, reset, dim)
+		}
 	}
 }
 
@@ -368,6 +417,13 @@ func lastComponent(path string) string {
 		path = path[index+1:]
 	}
 	return path
+}
+
+func btoi(boolean bool) int32 {
+	if boolean {
+		return 1
+	}
+	return 0
 }
 
 // ANSI color control escape sequences.
