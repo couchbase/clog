@@ -95,7 +95,7 @@ func init() {
 
 func Tag(category ContentCategory, data interface{}) interface{} {
 	if category < numTypes {
-		return fmt.Sprintf("<%s>%v</%s>", tags[category], data, tags[category])
+		return fmt.Sprintf("<%s>%s</%s>", tags[category], data, tags[category])
 	}
 
 	return data

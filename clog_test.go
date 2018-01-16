@@ -245,16 +245,23 @@ func TestRedactions(t *testing.T) {
 		return fmt.Sprintf(format, args...)
 	}
 
-	str := logCB("test1: %s, key: %s, seq: %v", "error",
-		Tag(ContentCategory(100), "k123"), 12312)
-	expect := "test1: error, key: k123, seq: 12312"
+	str := logCB("test1: %s, key: %q, seq: %v", "error",
+		Tag(ContentCategory(100), []byte("k123")), 12312)
+	expect := "test1: error, key: \"k123\", seq: 12312"
 	if str != expect {
 		t.Errorf("Unexpected output: [%v != %v]", str, expect)
 	}
 
-	str = logCB("test1: %s, key: %s, seq: %v", "error",
+	str = logCB("test2: %s, key: %q, seq: %v", "error",
 		Tag(UserData, "k123"), 12312)
-	expect = "test1: error, key: <ud>k123</ud>, seq: 12312"
+	expect = "test2: error, key: \"<ud>k123</ud>\", seq: 12312"
+	if str != expect {
+		t.Errorf("Unexpected output: [%v != %v]", str, expect)
+	}
+
+	str = logCB("test3: %s, key: %q, seq: %v", "error",
+		Tag(UserData, []byte("k123")), 12312)
+	expect = "test3: error, key: \"<ud>k123</ud>\", seq: 12312"
 	if str != expect {
 		t.Errorf("Unexpected output: [%v != %v]", str, expect)
 	}
