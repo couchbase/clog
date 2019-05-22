@@ -24,7 +24,8 @@ import (
 type LogLevel int32
 
 const (
-	LevelDebug = LogLevel(iota)
+	LevelTrace = LogLevel(iota)
+	LevelDebug
 	LevelNormal
 	LevelWarning
 	LevelError
@@ -324,6 +325,20 @@ func Debugf(format string, args ...interface{}) {
 func Debug(args ...interface{}) {
 	if GetLevel() <= LevelDebug {
 		doLog(fgRed, "DEBU", args...)
+	}
+}
+
+// Logs a formatted trace message to the console
+func Tracef(format string, args ...interface{}) {
+	if GetLevel() <= LevelTrace {
+		doLogf(fgRed, "TRAC", format, args...)
+	}
+}
+
+// Logs a trace message to the console
+func Trace(args ...interface{}) {
+	if GetLevel() <= LevelTrace {
+		doLog(fgRed, "TRAC", args...)
 	}
 }
 

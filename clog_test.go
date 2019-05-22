@@ -197,6 +197,30 @@ func TestOutput(t *testing.T) {
 			},
 			fgYellow + "CRIT: " + "testing123" + reset, -1, true,
 		},
+		{
+			func() {
+				Debug("testing", "123")
+			},
+			fgYellow + "DEBU: " + "testing123" + reset, -1, true,
+		},
+		{
+			func() {
+				Debugf("testing12%d", 3)
+			},
+			fgYellow + "DEBU: " + "testing123" + reset, -1, true,
+		},
+		{
+			func() {
+				Trace("testing", "123")
+			},
+			fgYellow + "TRAC: " + "testing123" + reset, -1, true,
+		},
+		{
+			func() {
+				Tracef("testing12%d", 3)
+			},
+			fgYellow + "TRAC: " + "testing123" + reset, -1, true,
+		},
 	}
 
 	exitVal := -1
